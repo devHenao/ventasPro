@@ -1,0 +1,290 @@
+<div class="main-layout">
+  <!-- Header/Navbar -->
+  <header class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <div class="container-fluid">
+      <!-- Left sidebar toggle -->
+      <button
+        class="btn btn-outline-light me-3 d-lg-none"
+        (click)="toggleLeftSidebar()"
+        type="button"
+      >
+        <i class="bi bi-funnel"></i>
+      </button>
+
+      <!-- Logo -->
+      <a class="navbar-brand fw-bold d-flex align-items-center" routerLink="/">
+        🏪
+        <span class="text-white">VentasPro</span>
+      </a>
+
+      <!-- Right side buttons -->
+      <div class="d-flex align-items-center gap-2">
+        <!-- Favorites button -->
+        <button
+          class="btn btn-outline-light position-relative"
+          (click)="toggleRightSidebar()"
+          type="button"
+        >
+          <i class="bi bi-heart"></i>
+          @if (favoriteIds().length > 0) {
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+              {{ favoriteIds().length }}
+            </span>
+          }
+        </button>
+
+        <!-- Cart button -->
+        <button
+          class="btn btn-outline-light position-relative"
+          (click)="toggleRightSidebar()"
+          type="button"
+        >
+          <i class="bi bi-cart3"></i>
+          @if (cartItemsCount() > 0) {
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+              {{ cartItemsCount() }}
+            </span>
+          }
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <div class="content-wrapper">
+    <!-- Left Sidebar (Filters) -->
+    <aside
+      class="left-sidebar"
+      [class.open]="leftSidebarOpen()"
+    >
+      <div class="sidebar-header">
+        <h5 class="mb-0">
+          <i class="bi bi-funnel me-2"></i>
+          Filtros
+        </h5>
+        <button
+          class="btn btn-sm btn-outline-secondary d-lg-none"
+          (click)="closeLeftSidebar()"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- Price Range -->
+        <div class="mb-4">
+          <h6 class="fw-bold mb-3">Rango de Precio</h6>
+          <div class="row g-2">
+            <div class="col-6">
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                placeholder="Min"
+                min="0"
+                [value]="currentFilters().priceRange.min"
+                (input)="onMinPriceChange($event)">
+            </div>
+            <div class="col-6">
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                placeholder="Max"
+                min="0"
+                [value]="currentFilters().priceRange.max"
+                (input)="onMaxPriceChange($event)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-section">
+          <h6 class="filter-title">Categorías</h6>
+          @for (category of categories(); track category.id) {
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [id]="'cat-' + category.id"
+                [checked]="currentFilters().selectedCategories.includes(category.id)"
+                (change)="onCategoryToggle(category.id)">
+              <label class="form-check-label" [for]="'cat-' + category.id">
+                {{ category.name }}
+              </label>
+            </div>
+          }
+        </div>
+
+        <!-- Brand Filter -->
+        <div class="filter-section">
+          <h6 class="filter-title">Marcas</h6>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="brand-dell">
+            <label class="form-check-label" for="brand-dell">Dell</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="brand-apple">
+            <label class="form-check-label" for="brand-apple">Apple</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="brand-logitech">
+            <label class="form-check-label" for="brand-logitech">Logitech</label>
+          </div>
+        </div>
+
+        <!-- Stock Filter -->
+        <div class="filter-section">
+          <h6 class="filter-title">Stock</h6>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="in-stock"
+              [checked]="currentFilters().inStockOnly"
+              (change)="onStockFilterChange($event)">
+            <label class="form-check-label" for="in-stock">Solo productos en stock</label>
+          </div>
+        </div>
+
+        <!-- Rating Filter -->
+        <div class="filter-section">
+          <h6 class="filter-title">Calificación</h6>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="rating" id="rating-5">
+            <label class="form-check-label" for="rating-5">
+              <span class="text-warning">★★★★★</span> 5 estrellas
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="rating" id="rating-4">
+            <label class="form-check-label" for="rating-4">
+              <span class="text-warning">★★★★☆</span> 4+ estrellas
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="rating" id="rating-3">
+            <label class="form-check-label" for="rating-3">
+              <span class="text-warning">★★★☆☆</span> 3+ estrellas
+            </label>
+          </div>
+        </div>
+
+        <!-- Clear Filters Button -->
+        <div class="mt-4">
+          <button
+            class="btn btn-outline-secondary w-100"
+            (click)="clearAllFilters()"
+            [disabled]="!hasActiveFilters()">
+            <i class="bi bi-arrow-clockwise me-2"></i>
+            Limpiar filtros
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="container-fluid p-4">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+
+    <!-- Right Sidebar (Cart & Favorites) -->
+    <aside
+      class="right-sidebar"
+      [class.open]="rightSidebarOpen()"
+    >
+      <div class="sidebar-header">
+        <h5 class="mb-0">
+          <i class="bi bi-cart3 me-2"></i>
+          Carrito
+        </h5>
+        <button
+          class="btn btn-sm btn-outline-secondary"
+          (click)="closeRightSidebar()"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- Cart Items -->
+        @if (cartItems().length > 0) {
+          <div class="cart-items">
+            @for (item of cartItems(); track item.productId) {
+              <div class="cart-item">
+                <div class="item-image">
+                  @if (item.image) {
+                    <img [src]="item.image" [alt]="item.name" class="img-fluid">
+                  } @else {
+                    <div class="no-image">
+                      <i class="bi bi-image"></i>
+                    </div>
+                  }
+                </div>
+                <div class="item-details">
+                  <h6 class="item-name">{{ item.name }}</h6>
+                  <p class="item-price">${{ item.price | number:'1.2-2' }}</p>
+                  <div class="quantity-controls">
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="updateCartQuantity(item.productId, item.variantId, item.quantity - 1)"
+                    >
+                      <i class="bi bi-dash"></i>
+                    </button>
+                    <span class="quantity">{{ item.quantity }}</span>
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="updateCartQuantity(item.productId, item.variantId, item.quantity + 1)"
+                      [disabled]="item.quantity >= item.stock"
+                    >
+                      <i class="bi bi-plus"></i>
+                    </button>
+                  </div>
+                </div>
+                <button
+                  class="btn btn-sm btn-outline-danger remove-btn"
+                  (click)="removeFromCart(item.productId, item.variantId)"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Cart Total -->
+          <div class="cart-total">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <strong>Total: ${{ cartTotal() | number:'1.2-2' }}</strong>
+            </div>
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary">
+                <i class="bi bi-credit-card me-2"></i>
+                Proceder al pago
+              </button>
+              <button class="btn btn-outline-secondary" (click)="clearCart()">
+                <i class="bi bi-trash me-2"></i>
+                Vaciar carrito
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="empty-cart">
+            <i class="bi bi-cart-x fs-1 text-muted"></i>
+            <p class="text-muted mt-3">Tu carrito está vacío</p>
+            <button class="btn btn-primary" (click)="closeRightSidebar()">
+              Continuar comprando
+            </button>
+          </div>
+        }
+      </div>
+    </aside>
+  </div>
+
+  <!-- Overlay for mobile -->
+  @if (leftSidebarOpen() || rightSidebarOpen()) {
+    <div
+      class="sidebar-overlay d-lg-none"
+      (click)="closeLeftSidebar(); closeRightSidebar()"
+    ></div>
+  }
+</div>

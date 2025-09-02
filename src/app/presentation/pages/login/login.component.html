@@ -1,0 +1,119 @@
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="row w-100">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-4 mx-auto">
+      <div class="card shadow-lg border-0">
+        <div class="card-body p-4 p-md-5">
+          <!-- Logo y Título -->
+          <div class="text-center mb-4">
+            <h2 class="h4 mb-3">Iniciar Sesión</h2>
+            <p class="text-muted">Ingresa tus credenciales para continuar</p>
+          </div>
+
+          <!-- Formulario -->
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label fw-medium">Correo Electrónico</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-envelope"></i>
+                </span>
+                <input
+                  id="email"
+                  type="email"
+                  class="form-control"
+                  formControlName="email"
+                  [ngClass]="{'is-invalid': (email?.touched || email?.dirty) && email?.errors}"
+                  placeholder="ejemplo@dominio.com">
+              </div>
+
+              @if (email?.errors?.['required'] && (email?.touched || email?.dirty)) {
+                <div class="invalid-feedback d-block">
+                  <i class="bi bi-exclamation-circle me-1"></i>
+                  El correo electrónico es obligatorio
+                </div>
+              }
+              @if (email?.errors?.['email'] && (email?.touched || email?.dirty)) {
+                <div class="invalid-feedback d-block">
+                  <i class="bi bi-exclamation-circle me-1"></i>
+                  Por favor ingrese un correo electrónico válido
+                </div>
+              }
+            </div>
+
+            <!-- Contraseña -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <label for="password" class="form-label fw-medium">Contraseña</label>
+                <a href="#" class="text-decoration-none small">¿Olvidaste tu contraseña?</a>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-lock"></i>
+                </span>
+                <input
+                  id="password"
+                  type="password"
+                  class="form-control"
+                  formControlName="password"
+                  [ngClass]="{'is-invalid': (password?.touched || password?.dirty) && password?.errors}"
+                  placeholder="••••••••">
+              </div>
+
+              @if (password?.errors?.['required'] && (password?.touched || password?.dirty)) {
+                <div class="invalid-feedback d-block">
+                  <i class="bi bi-exclamation-circle me-1"></i>
+                  La contraseña es obligatoria
+                </div>
+              }
+            </div>
+
+            <!-- Recordar contraseña -->
+            <div class="form-check mb-4">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="rememberMe"
+                formControlName="rememberMe">
+              <label class="form-check-label" for="rememberMe">
+                Recordar mis datos
+              </label>
+            </div>
+
+            <!-- Botón de envío -->
+            <div class="d-grid gap-2">
+              <button
+                type="submit"
+                class="btn btn-primary btn-lg"
+                [disabled]="isLoading() || loginForm.invalid">
+
+                @if (isLoading()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Iniciando sesión...
+                } @else {
+                  <i class="bi bi-box-arrow-in-right me-2"></i>
+                  Iniciar Sesión
+                }
+              </button>
+            </div>
+          </form>
+
+          <!-- Mensaje de error -->
+          @if (errorMessage()) {
+            <div class="alert alert-danger mt-4 mb-0 d-flex align-items-center" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <div>{{ errorMessage() }}</div>
+            </div>
+          }
+
+          <!-- Enlace de registro -->
+          <div class="text-center mt-4">
+            <p class="mb-0">¿No tienes una cuenta?
+              <a href="#" class="text-decoration-none">Regístrate</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

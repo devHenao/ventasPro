@@ -1,0 +1,99 @@
+<div class="search-filters">
+  <!-- Mobile Filter Toggle -->
+  <div class="d-lg-none mb-3">
+    <button 
+      class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center"
+      (click)="toggleMobileFilters()"
+      type="button"
+    >
+      <i class="bi bi-funnel me-2"></i>
+      {{ showMobileFilters() ? 'Ocultar filtros' : 'Mostrar filtros' }}
+    </button>
+  </div>
+
+  <div class="row g-3" [class.d-none]="!showMobileFilters()" [class.d-lg-flex]="true">
+    <!-- Search Input -->
+    <div class="col-12 col-lg-4">
+      <div class="input-group">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Buscar productos..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="onSearch()"
+        >
+        <button 
+          class="btn btn-primary" 
+          type="button"
+          (click)="onSearch()"
+        >
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="dropdown">
+        <button 
+          class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex align-items-center justify-content-between"
+          type="button" 
+          id="categoryDropdown" 
+          data-bs-toggle="dropdown" 
+          aria-expanded="false"
+        >
+          <span class="text-truncate">{{ selectedCategoryName() }}</span>
+        </button>
+        <ul class="dropdown-menu w-100" aria-labelledby="categoryDropdown">
+          <li>
+            <a 
+              class="dropdown-item" 
+              href="javascript:;" 
+              [class.active]="!selectedCategoryId"
+              (click)="onCategorySelect(null)"
+            >
+              Todas las categorías
+            </a>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          @for (category of categories; track category.id) {
+            <li>
+              <a 
+                class="dropdown-item" 
+                href="javascript:;"
+                [class.active]="selectedCategoryId === category.id"
+                (click)="onCategorySelect(category.id)"
+              >
+                {{ category.name }}
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sort Options -->
+    <div class="col-12 col-md-6 col-lg-3">
+      <select 
+        class="form-select" 
+        [(ngModel)]="selectedSort"
+        (change)="onSortChange(selectedSort)"
+      >
+        @for (option of sortOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Reset Button -->
+    <div class="col-12 col-lg-2">
+      <button 
+        class="btn btn-outline-secondary w-100"
+        (click)="onReset()"
+      >
+        <i class="bi bi-arrow-counterclockwise me-1"></i>
+        Reiniciar
+      </button>
+    </div>
+  </div>
+</div>

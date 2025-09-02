@@ -1,0 +1,42 @@
+@if (totalPages > 1) {
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center flex-wrap">
+      <!-- Previous Button -->
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <a class="page-link" href="javascript:;" (click)="previous()" [attr.aria-label]="'Previous'" [attr.tabindex]="currentPage === 1 ? -1 : 0">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      
+      <!-- Page Numbers -->
+      @for (page of pages; track page) {
+        @if (isEllipsis(page)) {
+          <li class="page-item disabled">
+            <span class="page-link">...</span>
+          </li>
+        } @else {
+          <li class="page-item" [class.active]="page === currentPage" [attr.aria-current]="page === currentPage ? 'page' : null">
+            <a class="page-link" href="javascript:;" (click)="setPage(page)">
+              {{ page }}
+              @if (page === currentPage) {
+                <span class="visually-hidden">(current)</span>
+              }
+            </a>
+          </li>
+        }
+      }
+      
+      <!-- Next Button -->
+      <li class="page-item" [class.disabled]="currentPage === totalPages">
+        <a class="page-link" href="javascript:;" (click)="next()" [attr.aria-label]="'Next'" [attr.tabindex]="currentPage === totalPages ? -1 : 0">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    </ul>
+    
+    <!-- Page Info -->
+    <div class="text-center text-muted small mt-2">
+      Mostrando página {{ currentPage }} de {{ totalPages }} ({{ totalItems }} elementos)
+    </div>
+  </nav>
+}

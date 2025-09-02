@@ -1,0 +1,109 @@
+<!-- Navbar del Dashboard -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="#">
+      <i class="bi bi-speedometer2 me-2"></i>VentasPro Dashboard
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#dashboardNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="dashboardNavbar">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link cursor-pointer" [class.active]="activeSection() === 'overview'" (click)="setActiveSection('overview')">
+            <i class="bi bi-house-door me-1"></i>Resumen
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link cursor-pointer" [class.active]="activeSection() === 'products'" (click)="setActiveSection('products')">
+            <i class="bi bi-box-seam me-1"></i>Productos
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link cursor-pointer" [class.active]="activeSection() === 'categories'" (click)="setActiveSection('categories')">
+            <i class="bi bi-tags me-1"></i>Categorías
+          </a>
+        </li>
+      </ul>
+      
+      <div class="navbar-nav">
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle cursor-pointer" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-person-circle me-1"></i>{{ user()?.username || 'Usuario' }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item cursor-pointer" href="#"><i class="bi bi-person me-2"></i>Perfil</a></li>
+            <li><a class="dropdown-item cursor-pointer" href="#"><i class="bi bi-gear me-2"></i>Configuración</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><button class="dropdown-item cursor-pointer" type="button" (click)="onLogout()"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</button></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid py-4">
+  <!-- Contenido dinámico basado en la sección activa -->
+  @if (activeSection() === 'overview') {
+    <div class="row mb-4">
+      <div class="col-12">
+        <h1 class="text-center">Panel de Control</h1>
+      </div>
+    </div>
+  }
+
+  <!-- Contenido Overview -->
+  @if (activeSection() === 'overview') {
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="card shadow mb-4">
+          <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0">Bienvenido/a</h2>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-success" role="alert">
+              <h4 class="alert-heading">¡Hola, {{ user()?.name || user()?.username || 'Usuario' }}!</h4>
+              <p>Has iniciado sesión correctamente en el sistema de VentasPro.</p>
+              <hr>
+              <p class="mb-0">Rol: <span class="badge bg-primary">{{ user()?.role || 'Usuario' }}</span></p>
+            </div>
+
+            <div class="row mt-4">
+              <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                  <div class="card-body text-center">
+                    <h5 class="card-title">Ventas del Día</h5>
+                    <p class="display-4 text-primary">0</p>
+                    <p class="text-muted small">Total de ventas registradas hoy</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                  <div class="card-body text-center">
+                    <h5 class="card-title">Productos en Stock</h5>
+                    <p class="display-4 text-success">0</p>
+                    <p class="text-muted small">Productos disponibles</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- CRUD Productos -->
+  @if (activeSection() === 'products') {
+    <app-products-crud></app-products-crud>
+  }
+
+  <!-- CRUD Categorías -->
+  @if (activeSection() === 'categories') {
+    <app-categories-crud></app-categories-crud>
+  }
+</div>

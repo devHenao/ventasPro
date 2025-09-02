@@ -1,0 +1,82 @@
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    
+    .card-img-top {
+      transform: scale(1.05);
+    }
+  }
+  
+  .product-image-container {
+    overflow: hidden;
+    height: 200px;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    .card-img-top {
+      transition: transform 0.5s ease;
+      max-height: 100%;
+      width: auto;
+      max-width: 100%;
+      object-fit: contain;
+      padding: 1rem;
+    }
+  }
+  
+  .card-title {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.4;
+    
+    a {
+      transition: color 0.2s ease;
+      
+      &:hover {
+        color: var(--bs-primary) !important;
+      }
+    }
+  }
+  
+  .btn-outline-secondary {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.3s ease, color 0.2s ease, background-color 0.2s ease;
+    
+    &:hover {
+      color: white;
+      background-color: var(--bs-primary);
+      border-color: var(--bs-primary);
+    }
+  }
+  
+  &:hover .btn-outline-secondary {
+    opacity: 1;
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    font-weight: 600;
+  }
+}
+
+// Efecto de carga esqueleto
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}

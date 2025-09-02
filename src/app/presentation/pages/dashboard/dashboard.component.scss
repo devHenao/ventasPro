@@ -1,0 +1,53 @@
+// Estilos adicionales para el dashboard
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+// Mejorar la apariencia del dropdown
+.dropdown-menu {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  border: none;
+  border-radius: 0.5rem;
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  transition: background-color 0.15s ease-in-out;
+  
+  &:hover {
+    background-color: #f8f9fa;
+  }
+  
+  i {
+    width: 1.2rem;
+    text-align: center;
+  }
+}
+
+// Estilos para el botón de logout
+button.dropdown-item {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  
+  &:hover {
+    background-color: #f8f9fa;
+  }
+}
+
+// Estilos para los enlaces de navegación
+.nav-link {
+  transition: all 0.15s ease-in-out;
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 0.25rem;
+  }
+  
+  &.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 0.25rem;
+    font-weight: 600;
+  }
+}

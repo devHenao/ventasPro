@@ -1,0 +1,6 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="40" rx="8" fill="#0d6efd"/>
+  <text x="10" y="26" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">VentasPro</text>
+  <circle cx="100" cy="20" r="8" fill="#ffffff" opacity="0.2"/>
+  <circle cx="105" cy="15" r="6" fill="#ffffff" opacity="0.3"/>
+</svg>

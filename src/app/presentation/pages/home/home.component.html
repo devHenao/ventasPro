@@ -1,0 +1,142 @@
+<div class="container py-4">
+  <!-- Header and Search -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h1>Nuestros Productos</h1>
+    </div>
+    <div class="col-md-6">
+      <div class="input-group mb-3">
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Buscar productos..."
+          [ngModel]="searchTerm()"
+          (ngModelChange)="onSearchChange($event)">
+        <span class="input-group-text">
+          <i class="bi bi-search"></i>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Sorting -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <select class="form-select" 
+              [ngModel]="selectedCategoryId()"
+              (ngModelChange)="onCategoryChange($event)">
+        <option [value]="null">Todas las categorías</option>
+        <option *ngFor="let category of categories()" [value]="category.id">
+          {{ category.name }}
+        </option>
+      </select>
+    </div>
+    <div class="col-md-3 ms-auto">
+      <select class="form-select" 
+              [ngModel]="sortBy()"
+              (ngModelChange)="onSortChange($event)">
+        <option value="name-asc">Nombre (A-Z)</option>
+        <option value="name-desc">Nombre (Z-A)</option>
+        <option value="price-asc">Precio: Menor a mayor</option>
+        <option value="price-desc">Precio: Mayor a menor</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="text-center my-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2">Cargando productos...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="alert alert-danger" role="alert">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Products Grid -->
+  @if (!loading() && !error()) {
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 mb-4">
+      @for (product of paginatedProducts(); track product.id) {
+        <div class="col">
+          <app-product-card [product]="product"></app-product-card>
+        </div>
+      }
+    </div>
+    
+    <!-- Empty State -->
+    @if (products().length === 0) {
+      <div class="text-center py-5">
+        <i class="bi bi-exclamation-circle display-4 text-muted mb-3"></i>
+        <h3>No se encontraron productos</h3>
+        <p class="text-muted">
+          @if (searchTerm() || selectedCategoryId()) {
+            Intenta con otros términos de búsqueda o filtros
+          } @else {
+            No hay productos disponibles en este momento. Por favor, intente más tarde.
+          }
+        </p>
+      </div>
+    }
+    
+    <!-- Pagination -->
+    @if (totalItems() > itemsPerPage) {
+      <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+          <!-- Previous Page Link -->
+          <li class="page-item" [class.disabled]="isFirstPage">
+            <a class="page-link" 
+               href="#" 
+               (click)="$event.preventDefault(); onPageChange(currentPageNum - 1)"
+               [class.disabled]="isFirstPage"
+               aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+          
+          <!-- Page Numbers -->
+          @for (page of getPageNumbers(); track page) {
+            @if (page === -1) {
+              <li class="page-item disabled">
+                <span class="page-link">...</span>
+              </li>
+            } @else {
+              <li class="page-item" [class.active]="page === currentPageNum">
+                <a class="page-link" 
+                   href="#" 
+                   (click)="$event.preventDefault(); onPageChange(page)"
+                   [class.active]="page === currentPageNum">
+                  {{ page }}
+                </a>
+              </li>
+            }
+          }
+          
+          <!-- Next Page Link -->
+          <li class="page-item" [class.disabled]="isLastPage">
+            <a class="page-link" 
+               href="#" 
+               (click)="$event.preventDefault(); onPageChange(currentPageNum + 1)"
+               [class.disabled]="isLastPage"
+               aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        </ul>
+        
+        <!-- Page Summary -->
+        <div class="text-center text-muted small mt-2">
+          Mostrando {{ (currentPageNum - 1) * itemsPerPage + 1 }} a 
+          {{ Math.min(currentPageNum * itemsPerPage, totalItemsCount) }} de 
+          {{ totalItemsCount }} productos
+        </div>
+      </nav>
+    }
+  }
+</div>

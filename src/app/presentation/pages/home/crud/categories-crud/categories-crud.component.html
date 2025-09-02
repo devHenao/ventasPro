@@ -1,0 +1,219 @@
+<div class="container-fluid">
+  <!-- Header con título y botón crear -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2><i class="bi bi-tags me-2"></i>Gestión de Categorías</h2>
+        <button class="btn btn-primary" (click)="openCreateModal()">
+          <i class="bi bi-plus-circle me-1"></i>Nueva Categoría
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros y búsqueda -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <div class="input-group">
+        <span class="input-group-text">
+          <i class="bi bi-search"></i>
+        </span>
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Buscar categorías..."
+          [value]="searchTerm()"
+          (input)="onSearch($event)">
+      </div>
+    </div>
+    <div class="col-md-4">
+      <select class="form-select" [value]="itemsPerPage()" (change)="onItemsPerPageChange($event)">
+        <option value="5">5 por página</option>
+        <option value="10">10 por página</option>
+        <option value="25">25 por página</option>
+        <option value="50">50 por página</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Tabla de categorías -->
+  <div class="card shadow">
+    <div class="card-body">
+      @if (isLoading()) {
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="mt-2 text-muted">Cargando categorías...</p>
+        </div>
+      } @else if (error()) {
+        <div class="alert alert-danger" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>{{ error() }}
+          <button class="btn btn-sm btn-outline-danger ms-2" (click)="loadCategories()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Reintentar
+          </button>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th scope="col" class="sortable" (click)="onSort('id')">
+                  ID
+                  <i class="bi ms-1" [class]="getSortIcon('id')"></i>
+                </th>
+                <th scope="col" class="sortable" (click)="onSort('name')">
+                  Nombre
+                  <i class="bi ms-1" [class]="getSortIcon('name')"></i>
+                </th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Estado</th>
+                <th scope="col" class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (filteredCategories().length === 0) {
+                <tr>
+                  <td colspan="5" class="text-center py-4">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <p class="text-muted mt-2">No se encontraron categorías</p>
+                  </td>
+                </tr>
+              } @else {
+                @for (category of filteredCategories(); track category.id) {
+                  <tr>
+                    <td class="fw-medium">#{{ category.id }}</td>
+                    <td class="fw-medium">
+                      <i class="bi bi-tag me-2 text-primary"></i>{{ category.name }}
+                    </td>
+                    <td>
+                      <span class="text-truncate d-inline-block" style="max-width: 300px;" [title]="category.description">
+                        {{ category.description }}
+                      </span>
+                    </td>
+                    <td>
+                      @if (category.isActive) {
+                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Activa</span>
+                      } @else {
+                        <span class="badge bg-secondary"><i class="bi bi-x-circle me-1"></i>Inactiva</span>
+                      }
+                    </td>
+                    <td class="text-center">
+                      <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(category)" title="Editar">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" (click)="deleteCategory(category)" title="Eliminar">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        @if (totalPages() > 1) {
+          <nav aria-label="Paginación de categorías">
+            <ul class="pagination justify-content-center mt-4">
+              <li class="page-item" [class.disabled]="currentPage() === 1">
+                <button class="page-link" (click)="onPageChange(currentPage() - 1)" [disabled]="currentPage() === 1">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+              </li>
+              
+              @for (page of getPageNumbers(); track page) {
+                <li class="page-item" [class.active]="page === currentPage()">
+                  <button class="page-link" (click)="onPageChange(page)">{{ page }}</button>
+                </li>
+              }
+              
+              <li class="page-item" [class.disabled]="currentPage() === totalPages()">
+                <button class="page-link" (click)="onPageChange(currentPage() + 1)" [disabled]="currentPage() === totalPages()">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </li>
+            </ul>
+          </nav>
+        }
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Modal para crear/editar categoría -->
+@if (showModal()) {
+  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            @if (isEditing()) {
+              <i class="bi bi-pencil me-2"></i>Editar Categoría
+            } @else {
+              <i class="bi bi-plus-circle me-2"></i>Nueva Categoría
+            }
+          </h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        
+        <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="name" class="form-label">Nombre *</label>
+              <input 
+                id="name" 
+                type="text" 
+                class="form-control"
+                formControlName="name"
+                [class.is-invalid]="categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched">
+              @if (categoryForm.get('name')?.errors?.['required'] && categoryForm.get('name')?.touched) {
+                <div class="invalid-feedback">El nombre es obligatorio</div>
+              }
+              @if (categoryForm.get('name')?.errors?.['minlength'] && categoryForm.get('name')?.touched) {
+                <div class="invalid-feedback">El nombre debe tener al menos 2 caracteres</div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">Descripción *</label>
+              <textarea 
+                id="description" 
+                class="form-control" 
+                rows="3"
+                formControlName="description"
+                [class.is-invalid]="categoryForm.get('description')?.invalid && categoryForm.get('description')?.touched"></textarea>
+              @if (categoryForm.get('description')?.errors?.['required'] && categoryForm.get('description')?.touched) {
+                <div class="invalid-feedback">La descripción es obligatoria</div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <label for="isActive" class="form-label">Estado</label>
+              <select id="isActive" class="form-select" formControlName="isActive">
+                <option [value]="true">Activa</option>
+                <option [value]="false">Inactiva</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">
+              <i class="bi bi-x-circle me-1"></i>Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="categoryForm.invalid">
+              @if (isEditing()) {
+                <i class="bi bi-check-circle me-1"></i>Actualizar
+              } @else {
+                <i class="bi bi-plus-circle me-1"></i>Crear
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
