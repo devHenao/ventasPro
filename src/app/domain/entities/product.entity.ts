@@ -12,7 +12,7 @@ export interface ProductImage {
   url: string;
   altText?: string;
   isMain: boolean;
-  order: number;
+  order?: number;
 }
 
 export interface ProductVariant {
@@ -40,7 +40,9 @@ export interface Product {
   stock?: number;
   rating?: number;
   reviewCount?: number;
-  category: Category;
+  categoryId: number;
+  categoryName: string;
+  category?: Category; // For backward compatibility
   images?: ProductImage[];
   variants?: ProductVariant[];
   specifications?: {

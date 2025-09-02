@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { ProductService } from '../../../data/services/product.service';
@@ -29,7 +29,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   // State
   products = signal<Product[]>([]);
   categories = signal<Category[]>([]);
-  selectedCategoryId = signal<number | null>(null);
+  selectedCategoryId = signal<number | null | string>('');
   loading = signal(true);
   error = signal<string | null>(null);
 
@@ -41,7 +41,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   // Filters
   searchTerm = signal('');
   sortBy = signal('name-asc');
-  
+
   // Computed values
   totalPages = computed(() => Math.ceil(this.totalItems() / this.itemsPerPage));
   paginatedProducts = computed(() => {
@@ -51,29 +51,33 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // Search debounce
   private searchTerms = new Subject<string>();
-  
+
   // Clean up subscriptions
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    // Remove event listener
+    window.removeEventListener('sidebarFiltersChanged', () => {
+      this.refreshProducts();
+    });
   }
-  
+
   // Public properties for template
   Math = Math;
-  
+
   // Public getters for template
   get currentPageNum() {
     return this.currentPage();
   }
-  
+
   get totalItemsCount() {
     return this.totalItems();
   }
-  
+
   get isFirstPage() {
     return this.currentPage() === 1;
   }
-  
+
   get isLastPage() {
     return this.currentPage() >= this.totalPages();
   }
@@ -81,7 +85,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Initialize search with debounce
     this.setupSearch();
-    
+
+    // Listen for sidebar filter changes
+    window.addEventListener('sidebarFiltersChanged', () => {
+      this.refreshProducts();
+    });
+
     // Load initial data
     this.loadCategories().then(() => {
       this.loadProducts();
@@ -107,21 +116,42 @@ export class HomeComponent implements OnInit, OnDestroy {
   private loadProducts(): void {
     this.loading.set(true);
     this.error.set(null);
-    
+
     this.productService.getProducts().subscribe({
       next: (response: PaginatedResponse<Product>) => {
         try {
           // Filter and sort products locally since we're using local JSON
           let filteredProducts = [...response.items];
+
+          // Apply sidebar filters
+          const sidebarFilters = this.filterService.currentFilters();
           
-          // Apply category filter
+          // Apply category filter (dropdown takes priority over sidebar)
           const selectedCategoryId = this.selectedCategoryId();
-          if (selectedCategoryId) {
+          if (selectedCategoryId && selectedCategoryId !== '') {
             filteredProducts = filteredProducts.filter(
-              p => p.category?.id === selectedCategoryId
+              p => p.category?.id === Number(selectedCategoryId)
+            );
+          } else if (sidebarFilters.selectedCategories.length > 0) {
+            filteredProducts = filteredProducts.filter(
+              p => sidebarFilters.selectedCategories.includes(p.category?.id || 0)
             );
           }
           
+          // Apply price range filter
+          if (sidebarFilters.priceRange.min > 0 || sidebarFilters.priceRange.max < 10000) {
+            filteredProducts = filteredProducts.filter(
+              p => p.price >= sidebarFilters.priceRange.min && p.price <= sidebarFilters.priceRange.max
+            );
+          }
+          
+          // Apply stock filter
+          if (sidebarFilters.inStockOnly) {
+            filteredProducts = filteredProducts.filter(
+              p => (p.stock || 0) > 0
+            );
+          }
+
           // Apply search filter
           const searchTerm = this.searchTerm().toLowerCase();
           if (searchTerm) {
@@ -131,14 +161,14 @@ export class HomeComponent implements OnInit, OnDestroy {
                    p.category?.name?.toLowerCase().includes(searchTerm)
             );
           }
-          
+
           // Apply sorting
           const sortedProducts = this.sortProducts(filteredProducts);
-          
+
           // Update state
           this.products.set(sortedProducts);
           this.totalItems.set(sortedProducts.length);
-          
+
           // Reset to first page if current page is no longer valid
           const maxPage = Math.max(1, this.totalPages());
           if (this.currentPage() > maxPage) {
@@ -162,17 +192,27 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private setupSearch() {
-    // Search functionality is handled in constructor with searchSubject
-    // No additional setup needed here
+    // Setup search with debounce
+    this.searchTerms.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(term => {
+      this.searchTerm.set(term);
+      this.currentPage.set(1);
+      this.loadProducts();
+    });
   }
 
+
   onSearchChange(term: string) {
-    this.searchTerm.set(term);
     this.searchTerms.next(term);
   }
 
-  onCategoryChange(categoryId: number | null) {
-    this.selectedCategoryId.set(categoryId);
+  onCategoryChange(categoryId: string | number | null) {
+    // Convert string to number or set to empty string for "all categories"
+    const processedId = categoryId === null || categoryId === '' ? '' : Number(categoryId);
+    this.selectedCategoryId.set(processedId);
     this.currentPage.set(1);
     this.loadProducts();
   }
@@ -182,27 +222,33 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.loadProducts();
   }
 
+  // Method to refresh products when sidebar filters change
+  refreshProducts() {
+    this.currentPage.set(1);
+    this.loadProducts();
+  }
+
   // Helper method to generate page numbers for pagination with ellipsis
   getPageNumbers(): number[] {
     const total = this.totalPages();
     const current = this.currentPage();
     const pages: number[] = [];
     const maxVisiblePages = 5;
-    
+
     // Always show first page
     pages.push(1);
-    
+
     // If only one page, return early
     if (total <= 1) return pages;
-    
+
     // Calculate range of pages to show
     let startPage = 2;
     let endPage = Math.min(total - 1, maxVisiblePages + 1);
-    
+
     if (total > maxVisiblePages + 2) {
       const maxPagesBeforeCurrent = Math.floor(maxVisiblePages / 2);
       const maxPagesAfterCurrent = Math.ceil(maxVisiblePages / 2) - 1;
-      
+
       if (current <= maxPagesBeforeCurrent + 1) {
         // Near the start
         endPage = maxVisiblePages + 1;
@@ -216,29 +262,29 @@ export class HomeComponent implements OnInit, OnDestroy {
         endPage = current + maxPagesAfterCurrent - 1;
       }
     }
-    
+
     // Add first ellipsis if needed
     if (startPage > 2) {
       pages.push(-1); // -1 represents ellipsis
     }
-    
+
     // Add page numbers in range
     for (let i = startPage; i <= endPage; i++) {
       if (i > 1 && i < total) {
         pages.push(i);
       }
     }
-    
+
     // Add last ellipsis if needed
     if (endPage < total - 1) {
       pages.push(-1); // -1 represents ellipsis
     }
-    
+
     // Always add last page if there is more than one page
     if (total > 1) {
       pages.push(total);
     }
-    
+
     return pages;
   }
 

@@ -1,4 +1,4 @@
-<div class="card h-100 product-card">
+<div class="card h-100 product-card" [attr.data-product-id]="product.id">
   <!-- Badge de oferta -->
   @if (hasDiscount) {
     <div class="position-absolute top-0 end-0 m-2">
@@ -58,7 +58,7 @@
         <button 
           class="btn btn-primary btn-sm flex-fill"
           (click)="addToCart()"
-          [disabled]="!currentVariant || (currentVariant.stock || 0) <= 0">
+          [disabled]="(product.stock || 0) <= 0">
           <i class="bi bi-cart-plus me-1"></i>
           Agregar
         </button>

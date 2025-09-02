@@ -1,5 +1,23 @@
 {
-  "/api/*": {
+  "/api/auth/*": {
+    "target": "http://10.72.5.55:5262",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/Categories/*": {
+    "target": "http://10.72.5.55:5262",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api/Products/*": {
+    "target": "http://10.72.5.55:5262",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/catalog/*": {
     "target": "http://10.72.5.55:5262",
     "secure": false,
     "changeOrigin": true,

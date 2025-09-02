@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed } from '@angular/core';
+import { Component, signal, inject, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +14,7 @@ import { CategoryService } from '../../../../data/services/category.service';
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss']
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
   private cartService = inject(CartService);
   private favoritesService = inject(FavoritesService);
   private filterService = inject(FilterService);
@@ -36,6 +36,25 @@ export class MainLayoutComponent {
 
   // Categories for filter
   categories = signal<any[]>([]);
+  categoriesLoading = signal(false);
+
+  ngOnInit() {
+    this.loadCategories();
+  }
+
+  private loadCategories() {
+    this.categoriesLoading.set(true);
+    this.categoryService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories.set(categories);
+        this.categoriesLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+        this.categoriesLoading.set(false);
+      }
+    });
+  }
 
   toggleLeftSidebar() {
     this.leftSidebarOpen.update(open => !open);
@@ -68,26 +87,37 @@ export class MainLayoutComponent {
   // Filter methods
   onPriceRangeChange(min: number, max: number) {
     this.filterService.updatePriceRange(min, max);
+    this.notifyFilterChange();
   }
 
   onCategoryToggle(categoryId: number) {
     this.filterService.toggleCategory(categoryId);
+    this.notifyFilterChange();
   }
 
   onBrandToggle(brand: string) {
     this.filterService.toggleBrand(brand);
+    this.notifyFilterChange();
   }
 
   onInStockToggle(inStockOnly: boolean) {
     this.filterService.updateInStockOnly(inStockOnly);
+    this.notifyFilterChange();
   }
 
   onRatingChange(minRating: number) {
     this.filterService.updateMinRating(minRating);
+    this.notifyFilterChange();
   }
 
   clearAllFilters() {
     this.filterService.clearAllFilters();
+    this.notifyFilterChange();
+  }
+
+  private notifyFilterChange() {
+    // Emit an event that the home component can listen to
+    window.dispatchEvent(new CustomEvent('sidebarFiltersChanged'));
   }
 
   // Helper methods for template event handling
@@ -106,15 +136,4 @@ export class MainLayoutComponent {
     this.onInStockToggle(target.checked);
   }
 
-  constructor() {
-    // Load categories for filter
-    this.categoryService.getCategories().subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-      },
-      error: (error) => {
-        console.error('Error loading categories:', error);
-      }
-    });
-  }
 }

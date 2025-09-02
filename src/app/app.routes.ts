@@ -37,6 +37,11 @@ export const routes: Routes = [
         path: 'dashboard',
         loadComponent: () => import('./presentation/pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
         canActivate: [() => inject(AuthGuard).canActivate()]
+      },
+      {
+        path: 'change-password',
+        loadComponent: () => import('./presentation/pages/change-password/change-password.component').then(m => m.ChangePasswordComponent),
+        canActivate: [() => inject(AuthGuard).canActivate()]
       }
     ]
   },

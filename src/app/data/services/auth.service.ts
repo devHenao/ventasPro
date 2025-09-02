@@ -27,6 +27,17 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  message: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -101,7 +112,40 @@ export class AuthService {
     });
   }
 
-  logout() {
+  logout(): Observable<boolean> {
+    const token = this.getToken();
+    
+    if (!token) {
+      // If no token, just clear local state
+      this.clearAuthState();
+      return of(true);
+    }
+
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+
+    return new Observable(observer => {
+      this.http.post(`${this.API_URL}/logout`, {}, { headers }).pipe(
+        catchError(error => {
+          console.error('Logout error:', error);
+          // Even if logout fails on server, clear local state
+          this.clearAuthState();
+          observer.next(true);
+          observer.complete();
+          return of(null);
+        })
+      ).subscribe(response => {
+        // Clear local state regardless of server response
+        this.clearAuthState();
+        observer.next(true);
+        observer.complete();
+      });
+    });
+  }
+
+  private clearAuthState() {
     this.currentUser.set(null);
     this.token.set(null);
     this.isAuthenticated.set(false);
@@ -119,6 +163,44 @@ export class AuthService {
 
   getToken(): string | null {
     return this.token();
+  }
+
+  changePassword(currentPassword: string, newPassword: string, confirmNewPassword: string): Observable<boolean> {
+    const token = this.getToken();
+    
+    if (!token) {
+      return of(false);
+    }
+
+    const changePasswordData: ChangePasswordRequest = {
+      currentPassword,
+      newPassword,
+      confirmNewPassword
+    };
+
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    };
+
+    return new Observable(observer => {
+      this.http.post<ChangePasswordResponse>(`${this.API_URL}/changeUserPassword`, changePasswordData, { headers }).pipe(
+        catchError(error => {
+          console.error('Change password error:', error);
+          observer.next(false);
+          observer.complete();
+          return of(null);
+        })
+      ).subscribe(response => {
+        if (response && response.success) {
+          observer.next(true);
+        } else {
+          observer.next(false);
+        }
+        observer.complete();
+      });
+    });
   }
 
   hasRole(role: string): boolean {

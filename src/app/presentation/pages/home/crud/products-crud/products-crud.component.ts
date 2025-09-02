@@ -82,9 +82,9 @@ export class ProductsCrudComponent implements OnInit {
 
         // Apply category filter
         if (this.selectedCategory()) {
-          filteredData = filteredData.filter(product =>
-            product.category.id.toString() === this.selectedCategory()
-          );
+          filteredData = filteredData.filter(product => {
+            return product.category?.id?.toString() === this.selectedCategory();
+          });
         }
 
         // Apply sorting
@@ -195,7 +195,7 @@ export class ProductsCrudComponent implements OnInit {
       name: product.name,
       description: product.description,
       price: product.price,
-      categoryId: product.category.id,
+      categoryId: product.categoryId || product.category?.id || 0,
       stock: product.stock,
       imageUrl: product.images?.[0]?.url || '',
       isActive: product.isActive

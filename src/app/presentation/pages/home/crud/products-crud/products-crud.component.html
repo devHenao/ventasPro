@@ -115,7 +115,7 @@
                     </td>
                     <td class="fw-bold text-success">${{ product.price | number:'1.2-2' }}</td>
                     <td>
-                      <span class="badge bg-secondary">{{ product.category.name }}</span>
+                      <span class="badge bg-secondary">{{ product.categoryName || product.category?.name }}</span>
                     </td>
                     <td>
                       @if ((product.stock || 0) > 10) {

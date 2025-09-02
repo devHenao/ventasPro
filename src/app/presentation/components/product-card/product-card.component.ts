@@ -33,11 +33,11 @@ export class ProductCardComponent {
   }
   
   get finalPrice() {
-    return this.currentVariant?.price || 0;
+    return this.product.price || 0;
   }
   
   get originalPrice() {
-    return this.currentVariant?.originalPrice;
+    return this.product.originalPrice;
   }
   
   get discountPercentage() {
@@ -46,22 +46,42 @@ export class ProductCardComponent {
   }
   
   addToCart() {
-    if (!this.currentVariant) return;
-    
+    if ((this.product.stock || 0) <= 0) {
+      alert('Producto sin stock disponible');
+      return;
+    }
+
     const cartItem: Omit<CartItem, 'quantity'> = {
       productId: this.product.id,
-      variantId: this.currentVariant.id,
+      variantId: this.currentVariant?.id || this.product.id,
       name: this.product.name,
-      price: this.currentVariant.price,
+      price: this.product.price,
       image: this.mainImage,
-      sku: this.currentVariant.sku,
-      stock: this.currentVariant.stock || 0
+      sku: this.product.sku || `PROD-${this.product.id}`,
+      stock: this.product.stock || 0
     };
     
     this.cartService.addItem(cartItem);
     
-    // Show success message (could be replaced with a toast service later)
-    console.log('Producto añadido al carrito:', this.product.name);
+    // Show success feedback
+    this.showAddToCartFeedback();
+  }
+
+  private showAddToCartFeedback() {
+    // Simple feedback - could be enhanced with a toast service
+    const button = document.querySelector(`[data-product-id="${this.product.id}"] .btn-primary`);
+    if (button) {
+      const originalText = button.innerHTML;
+      button.innerHTML = '<i class="bi bi-check me-1"></i>¡Agregado!';
+      button.classList.add('btn-success');
+      button.classList.remove('btn-primary');
+      
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.classList.remove('btn-success');
+        button.classList.add('btn-primary');
+      }, 1500);
+    }
   }
 
   toggleFavorite() {

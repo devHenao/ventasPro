@@ -25,7 +25,7 @@
       <select class="form-select" 
               [ngModel]="selectedCategoryId()"
               (ngModelChange)="onCategoryChange($event)">
-        <option [value]="null">Todas las categorías</option>
+        <option value="">Todas las categorías</option>
         <option *ngFor="let category of categories()" [value]="category.id">
           {{ category.name }}
         </option>

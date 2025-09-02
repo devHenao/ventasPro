@@ -35,12 +35,25 @@ export class DashboardComponent {
     this.activeSection.set(section);
   }
 
+  goToChangePassword() {
+    this.router.navigate(['/admin/change-password']);
+  }
+
   onLogout() {
     console.log('Logout clicked'); // Para debug
-    this.authService.logout();
-    // El AuthService ya maneja la navegación, pero por seguridad:
-    setTimeout(() => {
-      this.router.navigate(['/login']);
-    }, 100);
+    this.authService.logout().subscribe({
+      next: (success) => {
+        if (success) {
+          console.log('Logout successful');
+          // AuthService already handles navigation
+        } else {
+          console.error('Logout failed');
+        }
+      },
+      error: (error) => {
+        console.error('Logout error:', error);
+        // Even on error, user is logged out locally
+      }
+    });
   }
 }

@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of, delay } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, of, map, catchError } from 'rxjs';
 import { Category } from '../../domain/entities/category.entity';
+import { AuthService } from './auth.service';
 
 interface CategoryFormData {
   name: string;
@@ -10,57 +11,76 @@ interface CategoryFormData {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CategoryService {
   private http = inject(HttpClient);
-  private categoriesUrl = 'assets/data/categories.json';
+  private authService = inject(AuthService);
 
-  getCategories(): Observable<Category[]> {
-    // Datos hardcodeados para prueba
-    const mockCategories: Category[] = [
-      { id: 1, name: "Computadoras", description: "Equipos de cómputo", isActive: true, createdAt: new Date() },
-      { id: 2, name: "Accesorios", description: "Accesorios para computadoras", isActive: true, createdAt: new Date() },
-      { id: 3, name: "Laptops", description: "Computadoras portátiles", isActive: true, createdAt: new Date() },
-      { id: 4, name: "Desktops", description: "Computadoras de escritorio", isActive: true, createdAt: new Date() },
-      { id: 5, name: "Mouse y Teclados", description: "Dispositivos de entrada", isActive: true, createdAt: new Date() }
-    ];
-    
-    return of(mockCategories).pipe(delay(300));
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('authToken');
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    });
   }
 
-  // CRUD Methods
+  getCategories(): Observable<Category[]> {
+    return this.http
+      .get<Category[]>('http://10.72.5.55:5262/catalog/getAllCategories?flat=false')
+      .pipe(
+        map((categories) =>
+          categories.map((cat) => ({
+            ...cat,
+            createdAt: new Date(cat.createdAt),
+          }))
+        ),
+        catchError((error) => {
+          console.error('Error loading categories:', error);
+          return of([]);
+        })
+      );
+  }
+
   createCategory(categoryData: CategoryFormData): Observable<Category> {
-    // Simulate API call
-    const newCategory: Category = {
-      id: Date.now(), // Simple ID generation for mock
-      name: categoryData.name,
-      description: categoryData.description,
-      isActive: categoryData.isActive,
-      createdAt: new Date()
-    };
-    
-    console.log('Creating category:', newCategory);
-    return of(newCategory).pipe(delay(500));
+    return this.http
+      .post<Category>('http://10.72.5.55:5262/api/Categories/createCategory', categoryData, { headers: this.getAuthHeaders() })
+      .pipe(
+        map((category) => ({
+          ...category,
+          createdAt: new Date(category.createdAt),
+        })),
+        catchError((error) => {
+          console.error('Error creating category:', error);
+          throw error;
+        })
+      );
   }
 
   updateCategory(id: number, categoryData: CategoryFormData): Observable<Category> {
-    // Simulate API call
-    const updatedCategory: Category = {
-      id,
-      name: categoryData.name,
-      description: categoryData.description,
-      isActive: categoryData.isActive,
-      createdAt: new Date()
-    };
-    
-    console.log('Updating category:', updatedCategory);
-    return of(updatedCategory).pipe(delay(500));
+    return this.http
+      .put<Category>(`http://10.72.5.55:5262/api/Categories/updateCategoryById/${id}`, categoryData, { headers: this.getAuthHeaders() })
+      .pipe(
+        map((category) => ({
+          ...category,
+          createdAt: new Date(category.createdAt),
+        })),
+        catchError((error) => {
+          console.error('Error updating category:', error);
+          throw error;
+        })
+      );
   }
 
   deleteCategory(id: number): Observable<boolean> {
-    // Simulate API call
-    console.log('Deleting category with ID:', id);
-    return of(true).pipe(delay(500));
+    return this.http
+      .delete<any>(`http://10.72.5.55:5262/api/Categories/deleteCategoryById/${id}`, { headers: this.getAuthHeaders() })
+      .pipe(
+        map(() => true),
+        catchError((error) => {
+          console.error('Error deleting category:', error);
+          return of(false);
+        })
+      );
   }
 }
